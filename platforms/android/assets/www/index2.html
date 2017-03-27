@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="format-detection" content="telephone=no">
+        <meta name="msapplication-tap-highlight" content="no">
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+        <script type="text/javascript" src="cordova.js"></script>
+        <title>Hello World</title>
+        <script type="text/javascript">
+
+            //Benifits for using third party sqlite plugin
+            //Losses for using third party sqlite plugin
+
+            var db = null;
+            
+            document.addEventListener("deviceready", function(){ 
+                db = window.sqlitePlugin.openDatabase({name: 'demo.db', location: 'default'});
+
+                //default: Library/LocalDatabase subdirectory - NOT visible to iTunes and NOT backed up by iCloud
+                //Library: Library backed up by iCloud, NOT visible to iTunes
+                //Documents: Documents visible to iTunes and backed up by iCloud
+
+
+                //For upgrade logic please check my existing video from below url
+                //http://infologs.in/ or http://youtube.com/webboostings/
+                db.transaction(function(tx) {
+                    tx.executeSql('CREATE TABLE IF NOT EXISTS DemoTable (ID INTEGER PRIMARY KEY AUTOINCREMENT, firstname TEXT, lastname TEXT, pincode TEXT, mobileno TEXT)');                    
+                }, function(error) {
+                    alert('Transaction ERROR: ' + error.message);
+                }, function() {
+                    alert("Database has been generated successfully.");
+                });
+            }, false);
+
+            function SubmitValues() {
+                var firstname = document.getElementById("txtFirstName").value;
+                var lastname = document.getElementById("txtLastName").value;
+                var pincode = document.getElementById("txtPincode").value;
+                var mobileno = document.getElementById("txtMobileNo").value;
+
+
+                db.transaction(function(tx) {
+                    tx.executeSql('INSERT INTO DemoTable VALUES (NULL,?,?,?,?)', [firstname, lastname, pincode, mobileno]);
+                }, function(error) {
+                    console.log('Transaction ERROR: ' + error.message);
+                }, function() {
+                    alert("Information added successfully.");
+                });
+            }
+
+            function Showvalues() {
+                db.transaction(function(tx) {
+                tx.executeSql('SELECT * FROM DemoTable', [], function(tx, rs)
+                {
+                    var tblData = document.getElementById("tblData");
+                    var strData = "<tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Pincode</th><th>Mobile No</th></tr>";
+
+                    for(var i=0;i< rs.rows.length;i++) {
+                        strData += "<tr>";
+                            //All db names are case-sensitive                            
+                            strData += "<td>" + rs.rows.item(i).ID + "</td>";
+                            strData += "<td>" + rs.rows.item(i).firstname + "</td>";
+                            strData += "<td>" + rs.rows.item(i).lastname + "</td>";
+                            strData += "<td align='right'>" + rs.rows.item(i).pincode + "</td>";
+                            strData += "<td align='right'>" + rs.rows.item(i).mobileno + "</td>";
+                        strData += "</tr>";
+                    }
+
+                    tblData.innerHTML = strData;
+
+                }, function(tx, error) {
+                  alert('Error fetching records: ' + error.message);
+                });
+              });
+            }
+
+        </script>
+    </head>
+    <body>
+      <table width="100%">
+        <tr>
+            <th>First Name</th>
+            <td>
+                <input type="text" id="txtFirstName" />
+            </td>
+        </tr>
+        <tr>
+            <th>Last Name</th>
+            <td>
+                <input type="text" id="txtLastName" />
+            </td>
+        </tr>
+        <tr>
+            <th>Pincode</th>
+            <td>
+                <input type="text" id="txtPincode" />
+            </td>
+        </tr>
+        <tr>
+            <th>Mobile No</th>
+            <td>
+                <input type="text" id="txtMobileNo" />
+            </td>
+        </tr>
+        <tr>            
+            <td colspan="2" align="center">
+                <input type="button" onclick="SubmitValues();" value="Add Record" />&nbsp;
+                <input type="button" onclick="Showvalues();" value="Show Records" />
+            </td>
+        </tr>
+      </table>
+      <br/>
+      <table width="100%" id="tblData" border="1">
+          
+      </table>
+    </body>
+</html>
